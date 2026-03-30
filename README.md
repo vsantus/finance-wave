@@ -1,14 +1,22 @@
 # Finance Wave
 
-Aplicação front-end que simula um app bancário simples, construída como solução para o desafio técnico da vaga React Pleno.
+O Finance Wave é um front-end que simula a experiência de um app bancário simples: login, dashboard com saldo e histórico, e um fluxo de transferência com validação e atualização imediata da conta.
 
-O projeto cobre o fluxo principal pedido no desafio:
+Ele nasceu como resposta para um desafio técnico de React Pleno, então a ideia aqui não foi inventar moda. O foco foi montar uma base organizada, agradável de navegar e fácil de evoluir se esse mock precisasse virar produto.
 
-- login mock com persistência de sessão
+## O que dá para testar
+
+- login com sessão persistida localmente
 - rotas protegidas
-- dashboard com saldo e transações mockadas
-- formulário de transferência com validação
-- atualização imediata do saldo e da lista de transações
+- dashboard com saldo, entradas, saídas e histórico
+- transferência com validação
+- atualização instantânea do saldo e da lista de transações
+- feedback visual de sucesso e erro via toast
+
+Credenciais demo:
+
+- `fulano@email.dev`
+- `123456`
 
 ## Stack
 
@@ -16,7 +24,7 @@ O projeto cobre o fluxo principal pedido no desafio:
 - TypeScript
 - Vite
 - Tailwind CSS v4
-- shadcn/ui + Radix
+- shadcn/ui
 - React Router
 - React Query
 - Zustand
@@ -24,199 +32,92 @@ O projeto cobre o fluxo principal pedido no desafio:
 - Zod
 - Vitest
 
-## Arquitetura
-
-A aplicação foi organizada por responsabilidade para manter o código previsível e fácil de evoluir.
-
-```text
-src/
-  components/
-    ui/                  # componentes base do shadcn/ui
-  hooks/                 # hooks de integração e composição
-  lib/                   # utilitários compartilhados e query client
-  pages/
-    login/               # tela de autenticação mock
-    dashboard/           # visão principal da conta
-    transfer/            # formulário de transferência
-  routes/                # router e guards de autenticação
-  schemas/               # validações com Zod
-  services/              # camada de acesso a dados/mock
-  store/                 # estado global com Zustand
-```
-
-### Responsabilidades por camada
-
-- `pages`: composição das telas e orquestração do fluxo do usuário.
-- `routes`: definição das rotas e proteção de acesso.
-- `store`: estado global da autenticação e do domínio financeiro.
-- `services`: fonte de dados mockada, desacoplada da UI.
-- `hooks`: integração entre React Query e Zustand.
-- `schemas`: regras de validação dos formulários.
-- `components/ui`: primitives reutilizáveis para consistência visual.
-
-## Decisões técnicas
-
-### 1. React Query para dados remotos/mocados
-
-As transações iniciais são carregadas via React Query para manter o fluxo próximo de uma integração real com API. Isso facilita:
-
-- cache
-- estados de loading e erro
-- futura substituição do mock por backend real
-
-### 2. Zustand para estado global de sessão e conta
-
-Zustand foi escolhido para dois tipos de estado globais:
-
-- autenticação, com persistência em `localStorage`
-- estado financeiro local, usado para refletir instantaneamente transferências no dashboard
-
-Essa divisão evita misturar regras de sessão com regras do domínio bancário.
-
-### 3. React Hook Form + Zod para o fluxo de transferência
-
-O formulário de transferência usa:
-
-- `react-hook-form` para controle eficiente e simples dos campos
-- `zod` para validação declarativa e tipada
-
-Isso reduz duplicação entre validação de UI e tipagem de domínio.
-
-### 4. React Router com rotas protegidas
-
-As páginas `dashboard` e `transfer` só podem ser acessadas por usuários autenticados. Caso a sessão não exista, o usuário é redirecionado para `login`.
-
-Além da proteção, o fluxo preserva a rota originalmente solicitada para navegação após autenticação.
-
-### 5. shadcn/ui para base de interface
-
-Os componentes do `shadcn/ui` foram usados como base para:
-
-- padronização visual
-- consistência de interação
-- composição rápida sem acoplamento a um framework pesado de UI
-
-## Fluxo principal implementado
-
-### Login
-
-- autenticação mock
-- persistência de sessão com Zustand + `localStorage`
-
-### Dashboard
-
-- leitura de transações mockadas
-- cálculo e exibição de saldo
-- listagem de lançamentos
-
-### Transferência
-
-- formulário com validação
-- criação de nova transação de saída
-- atualização imediata do saldo
-- retorno ao dashboard com dados atualizados
-
-## Como rodar o projeto
-
-### Pré-requisitos
-
-- Node.js 20+ recomendado
-- npm 10+ recomendado
-
-### Instalação
+## Como rodar
 
 ```bash
 npm install
-```
-
-### Ambiente de desenvolvimento
-
-```bash
 npm run dev
 ```
 
-### Build de produção
+Outros comandos úteis:
 
 ```bash
 npm run build
-```
-
-### Preview local da build
-
-```bash
 npm run preview
-```
-
-### Verificação de lint
-
-```bash
 npm run lint
+npm run test
 ```
 
-## Estado atual da implementação
+O comando `npm run test` roda a bateria de testes automatizados do projeto.
 
-Hoje o projeto está operando com dados mockados locais na camada de `services`.
+## Estrutura do projeto
 
-Em uma integração real, a evolução natural seria:
+O código está separado por responsabilidade, sem exagerar em camadas:
 
-- substituir o mock por chamadas HTTP
-- usar `axios` como client centralizado
-- configurar interceptors para autenticação, tratamento de erro e refresh de sessão
+```text
+src/
+  components/   componentes reutilizáveis e blocos de interface
+  hooks/        integração entre UI, store e dados
+  lib/          utilitários compartilhados
+  pages/        login, dashboard e transferência
+  routes/       roteamento e proteção de acesso
+  schemas/      validações com Zod
+  services/     mocks e camada de acesso a dados
+  store/        estado global com Zustand
+  test/         testes de fluxo e regras de negócio
+  utils/        funções auxiliares
+```
 
-## Segurança
+## Algumas decisões do projeto
 
-O desafio pede uma explicação de como a aplicação seria protegida contra engenharia reversa e vazamento de dados. Abaixo está a abordagem recomendada para um cenário de produção.
+**React Query para carregar os dados iniciais**
 
-### 1. Engenharia reversa
+Mesmo com dados mockados, preferi usar React Query para deixar o fluxo mais próximo de uma integração real. Isso já prepara o terreno para cache, loading, erro e troca futura por API de verdade.
 
-Como qualquer aplicação front-end roda no navegador do usuário, o código entregue ao cliente nunca deve conter segredos reais.
+**Zustand para sessão e estado financeiro**
 
-Medidas recomendadas:
+A sessão mock fica persistida localmente, e o estado da conta responde na hora quando a transferência acontece. Para esse escopo, Zustand deixa tudo simples sem trazer peso desnecessário.
 
-- nunca expor tokens privados, secrets, chaves administrativas ou credenciais no front-end
-- mover regras críticas de negócio para o backend
-- tratar o front-end apenas como camada de apresentação e entrada de dados
-- usar variáveis públicas apenas para configuração não sensível
-- minimizar detalhes internos em mensagens de erro e logs exibidos ao usuário
-- aplicar source maps apenas onde realmente necessário, e evitar publicá-los em produção aberta
+**React Hook Form + Zod no formulário**
 
-Ponto importante:
+O formulário de transferência ficou mais previsível com validação declarativa e tipada, sem espalhar regra manual pela tela.
 
-Obfuscação pode aumentar o custo da análise, mas não deve ser tratada como mecanismo real de segurança.
+**Rotas protegidas**
 
-### 2. Vazamento de dados
+`/dashboard` e `/transfer` exigem autenticação. Se a sessão não existir, o usuário volta para o login e depois pode seguir para a rota que tentou acessar.
 
-Para evitar exposição indevida de dados sensíveis, a proteção principal deve estar no backend e no transporte dos dados.
+## Estado atual
 
-Medidas recomendadas:
+Hoje o app trabalha com dados locais e uma autenticação fake, o que faz sentido para o desafio. Se a próxima etapa fosse aproximar isso de produção, eu seguiria por aqui:
 
-- usar HTTPS obrigatoriamente
-- armazenar tokens em cookies `HttpOnly`, `Secure` e `SameSite`, quando aplicável
-- evitar persistir dados sensíveis em `localStorage` ou `sessionStorage`
-- trafegar apenas os dados estritamente necessários para cada tela
-- mascarar informações sensíveis quando possível
-- implementar autorização por recurso no backend, e não apenas no front-end
-- registrar auditoria para operações críticas
-- sanitizar inputs e padronizar tratamento de erros
+- trocar os mocks por chamadas HTTP
+- centralizar o client de API
+- mover autenticação para backend
+- parar de depender de persistência local para sessão
 
-No estado atual do projeto:
+## Sobre segurança
 
-- a persistência local é usada apenas para a sessão mock do desafio
-- não existem dados bancários reais, backend real ou credenciais sensíveis
+Como todo front-end roda no navegador do usuário, o cliente nunca deve carregar segredo real. Nesse projeto isso já está tratado pelo próprio escopo: não existe backend real, dado sensível real nem credencial de verdade.
 
-Em produção, esse armazenamento local deveria ser substituído por um fluxo seguro de autenticação baseado em backend.
+Num cenário de produção, a proteção principal estaria fora do front:
 
-## Melhorias futuras
+- regras críticas no backend
+- HTTPS obrigatório
+- tokens em cookies `HttpOnly` quando aplicável
+- autorização por recurso no servidor
+- nada sensível em `localStorage`
 
-- integrar API real com `axios`
-- adicionar testes cobrindo o fluxo `login -> dashboard -> transferência`
-- criar feedback visual de sucesso/erro com toast
-- adicionar máscara monetária no campo de valor
-- persistir transações do domínio financeiro
-- melhorar acessibilidade com mensagens de erro associadas via `aria-describedby`
-- adicionar loading skeleton no dashboard
-- criar layout compartilhado para páginas autenticadas
+Obfuscação pode até dificultar leitura do bundle, mas não resolve segurança de verdade.
 
-## Observações finais
+## Melhorias que fazem sentido depois
 
-O foco desta implementação foi demonstrar organização, clareza arquitetural e um fluxo funcional completo, priorizando legibilidade e evolução incremental do projeto.
+- integrar com API real
+- persistir histórico financeiro fora da memória local
+- adicionar mais cobertura de testes para o fluxo completo
+- melhorar acessibilidade das mensagens de erro
+- incluir skeleton/loading mais refinado no dashboard
+- criar um layout compartilhado para a área autenticada
+
+## Fechando
+
+Esse projeto tenta ser direto ao ponto: uma experiência pequena, mas bem resolvida. Sem muita camada desnecessária, sem complexidade artificial, e com espaço para crescer se precisar.
